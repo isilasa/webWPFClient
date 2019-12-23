@@ -16,6 +16,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Runtime.Serialization;
 
 namespace webClient
 {
@@ -41,7 +42,7 @@ namespace webClient
         }
 
         private void buttonConnect_Click(object sender, RoutedEventArgs e)
-        {
+        {   
             webClient = new ClientWebSocket();
             webClient.ConnectAsync(uri,token);
             
@@ -49,11 +50,23 @@ namespace webClient
 
         private void buttonSend_Click(object sender, RoutedEventArgs e)
         {
+            
             Person Tom = new Person { name = "Tom", age = 35 };
-            byte[] jsonData = JsonSerializer.SerializeToUtf8Bytes<Person>(Tom);
-            ArraySegment<byte> dataForSend = new ArraySegment<byte>(jsonData);
+            byte[] jsonDataForSend = JsonSerializer.SerializeToUtf8Bytes<Person>(Tom);
+            string jsonDataForClient = JsonSerializer.Serialize<Person>(Tom);
+            ArraySegment<byte> dataForSend = new ArraySegment<byte>(jsonDataForSend);
 
             webClient.SendAsync(dataForSend, 0, true, token);
+            requestToServerList.Items.Add(jsonDataForClient);
+
+
+            ArraySegment<byte> dataForRecive = new ArraySegment<byte>(jsonDataForSend);
+            webClient.ReceiveAsync(dataForRecive, token);
+
+            responceFromServerList.Items.Add(dataForRecive);
+
+                   
+            
 
             
         }
